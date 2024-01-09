@@ -1,77 +1,55 @@
-local wezterm = require "wezterm"
+local wezterm = require("wezterm")
 local act = wezterm.action
 
+local config = {
+	color_scheme = "tokyonight-storm",
+	font = wezterm.font("DroidSansMono Nerd Font", { weight = "Regular", stretch = "Normal", style = "Normal" }),
+	keys = {
+		{ key = "k", mods = "CMD", action = act.ClearScrollback("ScrollbackAndViewport") },
+		{ key = "w", mods = "CMD", action = act.CloseCurrentPane({ confirm = true }) },
+		{ key = "d", mods = "CMD", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+		{ key = "d", mods = "CMD|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+		{ key = "{", mods = "SHIFT|CMD", action = act.MoveTabRelative(-1) },
+		{ key = "}", mods = "SHIFT|CMD", action = act.MoveTabRelative(1) },
+	},
+	font_size = 17.7,
+	hyperlink_rules = {
+		-- Linkify things that look like URLs and the host has a TLD name.
+		-- Compiled-in default. Used if you don't specify any hyperlink_rules.
+		{ regex = "\\b\\w+://[\\w.-]+\\.[a-z]{2,15}\\S*\\b", format = "$0" },
 
-return {
-  color_scheme = "tokyonight-storm",
-  font = wezterm.font("DroidSansMono Nerd Font", {weight="Regular", stretch="Normal", style="Normal"}),
-  keys = {
-    {
-      key = "k",
-      mods = "CMD",
-      action = act.ClearScrollback "ScrollbackAndViewport",
-    },
-    {
-      key = 'w',
-      mods = 'CMD',
-      action = wezterm.action.CloseCurrentPane { confirm = true },
-    },
-    {
-      key = 'd',
-      mods = 'CMD',
-      action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' },
-    },
-    {
-      key = 'd',
-      mods = 'CMD|SHIFT',
-      action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' },
-    },
-  },
-  font_size = 17.7,
-  hyperlink_rules = {
-    -- Linkify things that look like URLs and the host has a TLD name.
-    -- Compiled-in default. Used if you don't specify any hyperlink_rules.
-    {
-      regex = '\\b\\w+://[\\w.-]+\\.[a-z]{2,15}\\S*\\b',
-      format = '$0',
-    },
+		-- linkify email addresses
+		-- Compiled-in default. Used if you don't specify any hyperlink_rules.
+		{ regex = [[\b\w+@[\w-]+(\.[\w-]+)+\b]], format = "mailto:$0" },
 
-    -- linkify email addresses
-    -- Compiled-in default. Used if you don't specify any hyperlink_rules.
-    {
-      regex = [[\b\w+@[\w-]+(\.[\w-]+)+\b]],
-      format = 'mailto:$0',
-    },
+		-- file:// URI
+		-- Compiled-in default. Used if you don't specify any hyperlink_rules.
+		{ regex = [[\bfile://\S*\b]], format = "$0" },
 
-    -- file:// URI
-    -- Compiled-in default. Used if you don't specify any hyperlink_rules.
-    {
-      regex = [[\bfile://\S*\b]],
-      format = '$0',
-    },
+		-- Linkify things that look like URLs with numeric addresses as hosts.
+		-- E.g. http://127.0.0.1:8000 for a local development server,
+		-- or http://192.168.1.1 for the web interface of many routers.
+		{ regex = [[\b\w+://(?:[\d]{1,3}\.){3}[\d]{1,3}\S*\b]], format = "$0" },
 
-    -- Linkify things that look like URLs with numeric addresses as hosts.
-    -- E.g. http://127.0.0.1:8000 for a local development server,
-    -- or http://192.168.1.1 for the web interface of many routers.
-    {
-      regex = [[\b\w+://(?:[\d]{1,3}\.){3}[\d]{1,3}\S*\b]],
-      format = '$0',
-    },
+		-- Make task numbers clickable
+		-- The first matched regex group is captured in $1.
+		{ regex = [[\b[tT](\d+)\b]], format = "https://example.com/tasks/?t=$1" },
 
-    -- Make task numbers clickable
-    -- The first matched regex group is captured in $1.
-    {
-      regex = [[\b[tT](\d+)\b]],
-      format = 'https://example.com/tasks/?t=$1',
-    },
-
-    -- Make username/project paths clickable. This implies paths like the following are for GitHub.
-    -- ( "nvim-treesitter/nvim-treesitter" | wbthomason/packer.nvim | wez/wezterm | "wez/wezterm.git" )
-    -- As long as a full URL hyperlink regex exists above this it should not match a full URL to
-    -- GitHub or GitLab / BitBucket (i.e. https://gitlab.com/user/project.git is still a whole clickable URL)
-    {
-      regex = [[["]?([\w\d]{1}[-\w\d]+)(/){1}([-\w\d\.]+)["]?]],
-      format = 'https://www.github.com/$1/$3',
-    },
-  },
+		-- Make username/project paths clickable. This implies paths like the following are for GitHub.
+		-- ( "nvim-treesitter/nvim-treesitter" | wbthomason/packer.nvim | wez/wezterm | "wez/wezterm.git" )
+		-- As long as a full URL hyperlink regex exists above this it should not match a full URL to
+		-- GitHub or GitLab / BitBucket (i.e. https://gitlab.com/user/project.git is still a whole clickable URL)
+		{ regex = [[["]?([\w\d]{1}[-\w\d]+)(/){1}([-\w\d\.]+)["]?]], format = "https://www.github.com/$1/$3" },
+	},
 }
+
+for i = 1, 8 do
+	-- CTRL+ALT + number to move to that position
+	table.insert(config.keys, {
+		key = tostring(i),
+		mods = "CTRL|CMD",
+		action = act.MoveTab(i - 1),
+	})
+end
+
+return config
